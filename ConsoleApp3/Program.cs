@@ -29,29 +29,24 @@ namespace includefilterfail
             using (var db = new SomeDbContext())
             {
                 var classA = db.ClassAs.
-                     IncludeFilter(x => x.ClassBs.Where(y => y.SomeProp < (int.MaxValue - 1000)).Take(5))
+                     IncludeFilter(x => x.ClassBs.Where(y => y.SomeProp < (int.MaxValue - 1000)).OrderBy(y => y.Id).Take(5))
                      .Single();
             }
 
             /* This query get executed: 
              * 
-             * -- EF+ Query Future: 1 of 2
+             *
+-- EF+ Query Future: 1 of 2
 SELECT TOP(2) [c].[Id], [c].[SomeProp]
 FROM [ClassAs] AS [c]
 ;
 
 -- EF+ Query Future: 2 of 2
-SELECT [x].[Id], [x].[SomeProp], [t].[Id], [t].[ClassAId], [t].[SomeProp]
+SELECT [x].[Id], [x].[SomeProp], [x.ClassBs].[Id], [x.ClassBs].[ClassAId], [x.ClassBs].[SomeProp]
 FROM [ClassAs] AS [x]
-LEFT JOIN (
-    SELECT [x.ClassBs].[Id], [x.ClassBs].[ClassAId], [x.ClassBs].[SomeProp]
-    FROM [ClassBs] AS [x.ClassBs]
-    WHERE [x.ClassBs].[SomeProp] < 2147482647
-) AS [t] ON [x].[Id] = [t].[ClassAId]
+LEFT JOIN [ClassBs] AS [x.ClassBs] ON [x].[Id] = [x.ClassBs].[ClassAId]
 ORDER BY [x].[Id]
 ;
-
-
              * */
 
             Console.WriteLine("Hello World!");
